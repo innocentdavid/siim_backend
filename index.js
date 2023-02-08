@@ -189,5 +189,5 @@ app.post('/api/generate_payment_intent', (req, res) => {
 
 app.get('/', (req, res) => res.send('Hello World!'))
 
-app.listen(8000, () => console.log('Example app listening on port 8000!'))
-// app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
+// app.listen(8000, () => console.log('Example app listening on port 8000!'))
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
