@@ -27,7 +27,7 @@ app.post("/api/generate_checkout_new_url", (req, res) => {
   chargebee.hosted_page.checkout_new_for_items({
     subscription_items:
     [{
-      item_price_id: 'Monthly-Plan-USD-Monthly',
+      item_price_id: req?.body?.plan_id,
       item_price_price: '9995',
       currency_code: 'USD',
       quantity: 1,
