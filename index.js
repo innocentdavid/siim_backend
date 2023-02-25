@@ -26,12 +26,12 @@ app.use(cors())
 app.post("/api/generate_checkout_new_url", (req, res) => {
   chargebee.hosted_page.checkout_new_for_items({
     subscription_items:
-    [{
-      item_price_id: req?.body?.plan_id,
-      item_price_price: '9995',
-      currency_code: 'USD',
-      quantity: 1,
-    }]
+      [{
+        item_price_id: req?.body?.plan_id,
+        item_price_price: '9995',
+        currency_code: 'USD',
+        quantity: 1,
+      }]
   }).request(function (error, result) {
     if (error) {
       //handle error
@@ -63,6 +63,48 @@ app.post("/api/cancel_for_items", (req, res) => {
   });
 });
 
+app.post("/api/create_customer", (req, res) => {
+  chargebee.customer.create({
+    first_name: req.body.first_name,
+    last_name: req.body.last_name,
+    allow_direct_debit: req.body.allow_direct_debit,
+    email: req.body.email,
+    // payment_method: {
+    //   gateway_account_id : "gw_B8OVRZTUbPV512",
+    //   type: "card",
+    //   token_id: req.body.token_id
+    // }
+  }).request(function (error, result) {
+    if (error) {
+      //handle error
+      console.log(error);
+      res.send({ message: 'error', error })
+    } else {
+      // console.log(result);
+      var customer = result.customer;
+      // var card = result.card;
+      // console.log(card);
+
+      // create payment_source
+      chargebee.payment_source.create_using_token({
+        customer_id : customer.id,
+        token_id : req.body.token_id
+      }).request(function(error,result) {
+        if(error){
+          //handle error
+          console.log(error);
+          res.send({ message: 'error', error })
+        }else{
+          // console.log(result);
+          var customer = result.customer;
+          var payment_source = result.payment_source;
+          res.send({ message: 'success', customer, payment_source })
+        }
+      });
+    }
+  });
+});
+
 app.post("/api/customer_list", (req, res) => {
   chargebee.customer.list({
     limit: 1,
@@ -70,7 +112,8 @@ app.post("/api/customer_list", (req, res) => {
   }).request(function (error, result) {
     if (error) {
       //handle error
-      console.log(error);
+      // console.log(error);
+      res.send({})
     } else {
       var customer = {};
       for (var i = 0; i < result.list.length; i++) {
@@ -80,18 +123,44 @@ app.post("/api/customer_list", (req, res) => {
         // var card = entry.card;
       }
       // console.log(customer);
-      console.log(result);
+      // console.log(result);
       // const customer = result.customer
       res.send(customer)
     }
   });
 });
 
+app.post("/api/create_subscription_for_customer", (req, res) => {
+  chargebee.subscription.create_with_items(req.body.customer_id,{
+      subscription_items:
+      [{
+        item_price_id: req?.body?.plan_id,
+        item_price_price: '9995',
+        currency_code: 'USD',
+        quantity: 1,
+      }]
+  }).request(function(error,result) {
+    if(error){
+      //handle error
+      // console.log(error);
+      res.send({ message: 'error', error })
+    }else{
+      // console.log(result);
+      // var subscription = result.subscription;
+      // var customer = result.customer;
+      // var card = result.card;
+      // var invoice = result.invoice;
+      // var unbilled_charges = result.unbilled_charges;
+      res.send({ message: 'success', result })
+    }
+  });
+})
+
 app.post("/api/subscription_list", (req, res) => {
   chargebee.subscription.list({
     limit: 1,
     "customer_id[is]": req.body.customer_id,
-}).request(function (error, result) {
+  }).request(function (error, result) {
     if (error) {
       //handle error
       console.log(error);
