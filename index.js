@@ -1,10 +1,19 @@
-const express = require('express')
-const chargebee = require("chargebee")
+// const express = require('express')
+import express from 'express';
+// const chargebee = require("chargebee")
+import chargebee from 'chargebee'
 // CORS is enabled only for demo. Please dont use this in production unless you know about CORS
-const cors = require('cors');
-const corsOptions = require('./config/corsOptions');
+// const cors = require('cors');
+import cors from 'cors'
+// const corsOptions = require('./config/corsOptions');
 // const { unbilled_charge } = require('chargebee/lib/resources/api_endpoints');
+// const { IgApiClient } = require('instagram-private-api');
+import { IgApiClient, IgLoginTwoFactorRequiredError, IgLoginBadPasswordError } from 'instagram-private-api';
+import Promise from 'bluebird';
+import inquirer from 'inquirer';
+
 const PORT = process.env.PORT || 8000
+const ig = new IgApiClient();
 
 chargebee.configure({
   site: "sproutysocial",
@@ -22,6 +31,54 @@ app.use(cors())
 //   result.setDate(result.getDate() + days);
 //   return result;
 // }
+
+app.post('/api/checkInstagramPassword', async (req, res) => {
+  const IG_USERNAME = req.body.IG_USERNAME
+  const IG_PASSWORD = req.body.IG_PASSWORD
+
+  ig.state.generateDevice(IG_USERNAME);
+
+  try {
+    const loggedInUser = await ig.account.login(IG_USERNAME, IG_PASSWORD);
+    // console.log(loggedInUser);
+    res.send({ success: true, data: loggedInUser })
+
+  } catch (error) {
+    // console.log(error.response.body);
+    if (error.response.body.error_type === 'two_factor_required') {
+      const { username, totp_two_factor_on, two_factor_identifier } = err.response.body.two_factor_info;
+      // decide which method to use
+      const verificationMethod = totp_two_factor_on ? '0' : '1'; // default to 1 for SMS
+
+      res.send({ success: false, error: error.response.body, two_factor_identifier, verificationMethod })
+      return;
+    } else {
+      res.send({ success: false, error: error.response.body })
+      return;
+    }
+  }
+
+})
+
+app.post('/api/twoFactorLogin', async (req, res) => {
+  const IG_USERNAME = req.body.IG_USERNAME
+  const code = req.body.code
+  const two_factor_identifier = req.body.two_factor_identifier
+
+  ig.state.generateDevice(IG_USERNAME);
+  try {
+    const r = await ig.account.twoFactorLogin({
+      username: IG_USERNAME,
+      verificationCode: code,
+      twoFactorIdentifier: two_factor_identifier,
+      verificationMethod, // '1' = SMS (default), '0' = TOTP (google auth for example)
+      trustThisDevice: '1', // Can be omitted as '1' is used by default
+    });
+    res.send({ success: true, data: r })
+  } catch (error) {
+    res.send({ success: true, error: error.response.body })
+  }
+})
 
 app.post("/api/generate_checkout_new_url", (req, res) => {
   chargebee.hosted_page.checkout_new_for_items({
@@ -87,14 +144,14 @@ app.post("/api/create_customer", (req, res) => {
 
       // create payment_source
       chargebee.payment_source.create_using_token({
-        customer_id : customer.id,
-        token_id : req.body.token_id
-      }).request(function(error,result) {
-        if(error){
+        customer_id: customer.id,
+        token_id: req.body.token_id
+      }).request(function (error, result) {
+        if (error) {
           //handle error
           console.log(error);
           res.send({ message: 'error', error })
-        }else{
+        } else {
           // console.log(result);
           var customer = result.customer;
           var payment_source = result.payment_source;
@@ -131,20 +188,20 @@ app.post("/api/customer_list", (req, res) => {
 });
 
 app.post("/api/create_subscription_for_customer", (req, res) => {
-  chargebee.subscription.create_with_items(req.body.customer_id,{
-      subscription_items:
+  chargebee.subscription.create_with_items(req.body.customer_id, {
+    subscription_items:
       [{
         item_price_id: req?.body?.plan_id,
         item_price_price: '9995',
         currency_code: 'USD',
         quantity: 1,
       }]
-  }).request(function(error,result) {
-    if(error){
+  }).request(function (error, result) {
+    if (error) {
       //handle error
       // console.log(error);
       res.send({ message: 'error', error })
-    }else{
+    } else {
       // console.log(result);
       // var subscription = result.subscription;
       // var customer = result.customer;

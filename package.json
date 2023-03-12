@@ -2,6 +2,7 @@
   "name": "checkout-sample-integration",
   "version": "1.0.0",
   "description": "",
+  "type": "module",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,8 +10,13 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "bluebird": "^3.7.2",
     "chargebee": "^2.6.0",
     "cors": "^2.8.4",
-    "express": "^4.16.2"
+    "express": "^4.16.2",
+    "inquirer": "^9.1.4",
+    "instagram-private-api": "^1.45.3",
+    "lodash": "^4.17.21",
+    "re2": "^1.18.0"
   }
 }
