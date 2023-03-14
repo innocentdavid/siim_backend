@@ -1,5 +1,6 @@
 // const express = require('express')
 import express from 'express';
+const stripe = require('stripe')('sk_test_51LpIDZEnD23RzUmzduhW450yemj8EGA1Al9P7CH4p24FzTZXl2xeUbzXwEV75Cwbn0WNdeG1xQOGChQOhjw1pt3M00LhI4l1tz');
 // const chargebee = require("chargebee")
 import chargebee from 'chargebee'
 // CORS is enabled only for demo. Please dont use this in production unless you know about CORS
@@ -31,6 +32,55 @@ app.use(cors())
 //   result.setDate(result.getDate() + days);
 //   return result;
 // }
+
+
+
+
+const endpointSecret = "whsec_302d543babda50dbe3612700e059cc72e54ab7b6f01ce9c540a8162cf6757784";
+
+app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
+  const sig = req.headers['stripe-signature'];
+
+  let event;
+
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, endpointSecret);
+  } catch (err) {
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  // Handle the event
+  switch (event.type) {
+    case 'customer.subscription.created':
+      const customerSubscriptionCreated = event.data.object;
+      // Then define and call a function to handle the event customer.subscription.created
+      console.log(customerSubscriptionCreated)
+      break;
+    case 'customer.subscription.deleted':
+      const customerSubscriptionDeleted = event.data.object;
+      // Then define and call a function to handle the event customer.subscription.deleted
+      console.log(customerSubscriptionDeleted)
+      break;
+      case 'customer.subscription.updated':
+        const customerSubscriptionUpdated = event.data.object;
+        // Then define and call a function to handle the event customer.subscription.updated
+        console.log(customerSubscriptionUpdated);
+      break;
+    // ... handle other event types
+    default:
+      console.log(`Unhandled event type ${event.type}`);
+  }
+
+  // Handle the event
+  console.log(`Unhandled event type ${event.type}`);
+
+  // Return a 200 response to acknowledge receipt of the event
+  response.send();
+});
+
+
+
 
 app.post('/api/checkInstagramPassword', async (req, res) => {
   const IG_USERNAME = req.body.IG_USERNAME
