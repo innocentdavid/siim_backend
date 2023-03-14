@@ -20,12 +20,18 @@ const endpointSecret = "whsec_m0H5F1EJlHhJzZcjSxImOcLOkPc7VMnT";
 
 app.post('/webhook', express.raw({ type: 'application/json' }), (request, response) => {
   console.log(request.body);
+  console.log('///////////////////////////////////////////////////////////////');
+  console.log('///////////////////////////////////////////////////////////////');
+  console.log('///////////////////////////////////////////////////////////////');
+  console.log('///////////////////////////////////////////////////////////////');
+  console.log('///////////////////////////////////////////////////////////////');
+  console.log(request.rawBody);
   const sig = request.headers['stripe-signature'];
 
   let event;
 
   try {
-    event = stripe.webhooks.constructEvent(request.body, sig, endpointSecret);
+    event = stripe.webhooks.constructEvent(request.rawBody, sig, endpointSecret);
   } catch (err) {
     response.status(400).send(`Webhook Error: ${err.message}`);
     return;
