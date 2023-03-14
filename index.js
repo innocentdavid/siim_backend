@@ -1,20 +1,18 @@
-// const express = require('express')
-import express from 'express';
+const express = require('express')
+// import express from 'express';
 const stripe = require('stripe')('sk_test_51LpIDZEnD23RzUmzduhW450yemj8EGA1Al9P7CH4p24FzTZXl2xeUbzXwEV75Cwbn0WNdeG1xQOGChQOhjw1pt3M00LhI4l1tz');
-// const chargebee = require("chargebee")
-import chargebee from 'chargebee'
+const chargebee = require("chargebee")
+// import chargebee from 'chargebee'
 // CORS is enabled only for demo. Please dont use this in production unless you know about CORS
-// const cors = require('cors');
-import cors from 'cors'
+const cors = require('cors');
+// import cors from 'cors'
 // const corsOptions = require('./config/corsOptions');
 // const { unbilled_charge } = require('chargebee/lib/resources/api_endpoints');
 // const { IgApiClient } = require('instagram-private-api');
-import { IgApiClient, IgLoginTwoFactorRequiredError, IgLoginBadPasswordError } from 'instagram-private-api';
-import Promise from 'bluebird';
-import inquirer from 'inquirer';
+// import { IgApiClient, IgLoginTwoFactorRequiredError, IgLoginBadPasswordError } from 'instagram-private-api';
 
 const PORT = process.env.PORT || 8000
-const ig = new IgApiClient();
+const ig = null;
 
 chargebee.configure({
   site: "sproutysocial",
